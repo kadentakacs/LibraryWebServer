@@ -124,8 +124,26 @@ namespace LibraryWebServer.Controllers
         [HttpPost]
         public ActionResult ListMyBooks()
         {
-            // TODO: Implement
-            return Json( null );
+            if (card == -1)
+            {
+                return Json(new { success = false, message = "No user logged in" });
+            }
+
+            using (Team110LibraryContext db = new Team110LibraryContext())
+            {
+                var query = from c in db.CheckedOut
+                    join i in db.Inventory on c.Serial equals i.Serial
+                    join t in db.Titles on i.Isbn equals t.Isbn
+                    where c.CardNum == card
+                    select new
+                    {
+                        title = t.Title,
+                        author = t.Author,
+                        serial = (uint)c.Serial
+                    };
+
+                return Json(query.ToArray());
+            }
         }
 
 
@@ -140,10 +158,33 @@ namespace LibraryWebServer.Controllers
         [HttpPost]
         public ActionResult CheckOutBook( int serial )
         {
-            // You may have to cast serial to a (uint)
+            if (card == -1)
+            {
+                return Json(new { success = false, message = "No user logged in" });
+            }
 
+            using (Team110LibraryContext db = new Team110LibraryContext())
+            {
+                // Check if the book is already checked out
+                var isCheckedOut = db.CheckedOut.Any(c => c.Serial == serial);
 
-            return Json( new { success = true } );
+                if (isCheckedOut)
+                {
+                    return Json(new { success = false, message = "Book is already checked out" });
+                }
+
+                // Check out the book
+                var checkout = new CheckedOut
+                {
+                    Serial = (uint)serial,
+                    CardNum = (uint)card
+                };
+
+                db.CheckedOut.Add(checkout);
+                db.SaveChanges();
+            }
+
+            return Json(new { success = true });
         }
 
         /// <summary>
@@ -156,9 +197,26 @@ namespace LibraryWebServer.Controllers
         [HttpPost]
         public ActionResult ReturnBook( int serial )
         {
-            // You may have to cast serial to a (uint)
+            if (card == -1)
+            {
+                return Json(new { success = false, message = "No user logged in" });
+            }
 
-            return Json( new { success = true } );
+            using (Team110LibraryContext db = new Team110LibraryContext())
+            {
+                var checkout = db.CheckedOut
+                    .FirstOrDefault(c => c.Serial == serial && c.CardNum == card);
+
+                if (checkout == null)
+                {
+                    return Json(new { success = false, message = "Book not checked out by user" });
+                }
+
+                db.CheckedOut.Remove(checkout);
+                db.SaveChanges();
+            }
+
+            return Json(new { success = true });
         }
 
 
