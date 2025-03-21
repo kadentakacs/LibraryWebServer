@@ -26,7 +26,7 @@ public partial class Team110LibraryContext : DbContext
     public virtual DbSet<Titles> Titles { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseMySql("server=atr.eng.utah.edu;user id=u1267912;password=kadentakacs;database=Team110Library", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.8-mariadb"));
+        => optionsBuilder.UseMySql("server=atr.eng.utah.edu;user id=u1267912;password=pwd;database=Team110Library", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.8-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
