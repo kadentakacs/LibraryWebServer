@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 
 [assembly: InternalsVisibleTo( "TestProject1" )]
 namespace LibraryWebServer.Controllers
@@ -31,8 +32,21 @@ namespace LibraryWebServer.Controllers
         [HttpPost]
         public IActionResult CheckLogin( string name, int cardnum )
         {
+            bool loginSuccessful;
+
+            using (Team110LibraryContext db = new Team110LibraryContext())
+            {
+                var query =
+                from p in db.Patrons where p.Name == name && p.CardNum == cardnum
+                select new {name = p.Name, cardNum = p.CardNum};
+
+                if (query.Any())
+                    loginSuccessful = true;
+                else
+                    loginSuccessful = false;
+            }
+
             // TODO: Fill in. Determine if login is successful or not.
-            bool loginSuccessful = false;
 
             if ( !loginSuccessful )
             {
@@ -74,9 +88,29 @@ namespace LibraryWebServer.Controllers
         {
 
             // TODO: Implement
+            using (Team110LibraryContext db = new Team110LibraryContext())
+            {
+                //var query =
+                //from t in db.Titles
+                //join i in db.Inventory on t.Isbn equals i.Isbn
+                //join c in db.CheckedOut on i.Serial equals c.Serial
+                //join p in db.Patrons on c.CardNum equals p.CardNum
 
-            return Json( null );
+                //select new { isbn = t.Isbn, title = t.Title, author = t.Author, serial = i.Serial, name = p.Name };
+                //return Json(query.ToArray());
 
+                var query = 
+                from t in db.Titles
+                join i in db.Inventory on t.Isbn equals i.Isbn into inv
+                from j1 in inv.DefaultIfEmpty()
+                join c in db.CheckedOut on j1.Serial equals c.Serial into chkOut
+                from j2 in chkOut.DefaultIfEmpty()
+                join p in db.Patrons on j2.CardNum equals p.CardNum
+                select new
+                {isbn = t.Isbn, title = t.Title, author = t.Author, serial = (j1 == null ? null : (uint?)j1.Serial), name = (j2 == null ? "" : p.Name) };
+
+                return Json( query.ToArray() );
+            }
         }
 
         /// <summary>
