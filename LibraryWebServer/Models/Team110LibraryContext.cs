@@ -26,7 +26,6 @@ public partial class Team110LibraryContext : DbContext
     public virtual DbSet<Titles> Titles { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseMySql("server=atr.eng.utah.edu;user id=u1267912;password=kadentakacs;database=Team110Library", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.8-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

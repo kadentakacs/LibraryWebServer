@@ -46,8 +46,6 @@ namespace LibraryWebServer.Controllers
                     loginSuccessful = false;
             }
 
-            // TODO: Fill in. Determine if login is successful or not.
-
             if ( !loginSuccessful )
             {
                 return Json( new { success = false } );
@@ -62,7 +60,7 @@ namespace LibraryWebServer.Controllers
 
 
         /// <summary>
-        /// Logs a user out. This is implemented for you.
+        /// Logs a user out.
         /// </summary>
         /// <returns>Success</returns>
         [HttpPost]
@@ -86,28 +84,18 @@ namespace LibraryWebServer.Controllers
         [HttpPost]
         public ActionResult AllTitles()
         {
-
-            // TODO: Implement
             using (Team110LibraryContext db = new Team110LibraryContext())
             {
-                //var query =
-                //from t in db.Titles
-                //join i in db.Inventory on t.Isbn equals i.Isbn
-                //join c in db.CheckedOut on i.Serial equals c.Serial
-                //join p in db.Patrons on c.CardNum equals p.CardNum
-
-                //select new { isbn = t.Isbn, title = t.Title, author = t.Author, serial = i.Serial, name = p.Name };
-                //return Json(query.ToArray());
-
                 var query = 
                 from t in db.Titles
                 join i in db.Inventory on t.Isbn equals i.Isbn into inv
                 from j1 in inv.DefaultIfEmpty()
                 join c in db.CheckedOut on j1.Serial equals c.Serial into chkOut
                 from j2 in chkOut.DefaultIfEmpty()
-                join p in db.Patrons on j2.CardNum equals p.CardNum
+                join p in db.Patrons on j2.CardNum equals p.CardNum into result
+                from y in result.DefaultIfEmpty()
                 select new
-                {isbn = t.Isbn, title = t.Title, author = t.Author, serial = (j1 == null ? null : (uint?)j1.Serial), name = (j2 == null ? "" : p.Name) };
+                {isbn = t.Isbn, title = t.Title, author = t.Author, serial = (j1 == null ? null : (uint?)j1.Serial), name = (j2 == null ? "" : y.Name) };
 
                 return Json( query.ToArray() );
             }
@@ -131,7 +119,8 @@ namespace LibraryWebServer.Controllers
 
             using (Team110LibraryContext db = new Team110LibraryContext())
             {
-                var query = from c in db.CheckedOut
+                var query = 
+                    from c in db.CheckedOut
                     join i in db.Inventory on c.Serial equals i.Serial
                     join t in db.Titles on i.Isbn equals t.Isbn
                     where c.CardNum == card
